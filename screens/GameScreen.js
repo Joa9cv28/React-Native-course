@@ -88,7 +88,6 @@ const styles = StyleSheet.create({
   },
   buttonsContainer:{
     flexDirection: 'row',
-    // paddingTop: 20, //instead of applying it to the container we added it to the IntructionText components
   },
   buttonContainer: {
     flex: 1,
