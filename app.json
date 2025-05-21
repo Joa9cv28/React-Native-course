@@ -15,7 +15,8 @@
     },
     "ios": {
       "supportsTablet": true,
-      "backgroundColor": "#24180f"
+      "backgroundColor": "#24180f",
+      "bundleIdentifier": "com.joanine.RNCourse"
     },
     "android": {
       "adaptiveIcon": {
