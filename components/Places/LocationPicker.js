@@ -1,19 +1,45 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Alert, Image, StyleSheet, View, Text } from "react-native";
 import { getCurrentPositionAsync, useForegroundPermissions, PermissionStatus } from "expo-location";
+import { useNavigation, useRoute, useIsFocused } from "@react-navigation/native";
 
 import OutlinedButton from "../UI/OutlinedButton";
 import { Colors } from "../../constants/colors";
-import { getMapPreview } from "../../util/location";
-import { useNavigation } from "@react-navigation/native";
+import { getAddress, getMapPreview } from "../../util/location";
 
+function LocationPicker({ onPickedLocation, pickedImage, enteredTitle, pickedLocation: initialLocation }) {
+  const [pickedLocation, setPickedLocation] = useState(initialLocation);
+  const isFocused = useIsFocused(); // Check if the screen is focused to update location only when the screen is active
 
-function LocationPicker() {
-  const [pickedLocation, setPickedLocation] = useState();
   const navigation = useNavigation();
+  const route = useRoute();
 
   const [locationPermissionInformation, requestPermission] = useForegroundPermissions();
-  
+
+  useEffect(() => {
+    if (isFocused && route.params) {
+      const mapPickedLocation = {
+        lat: route.params.pickedLat, 
+        lng: route.params.pickedLng,
+      };
+      setPickedLocation(mapPickedLocation);
+    }
+  }, [route, isFocused]);
+
+  useEffect(() => {
+    async function handleLocation() {
+      if(initialLocation) {
+        const address = await getAddress(pickedLocation.lat, pickedLocation.lng);
+        onPickedLocation({...pickedLocation, address: address});
+      }
+    }
+    handleLocation();
+  }, [pickedLocation, onPickedLocation]); 
+
+  useEffect(() => {
+    setPickedLocation(initialLocation);
+  }, [initialLocation]);
+
   async function verifyPermissions() {
      if(locationPermissionInformation.status === PermissionStatus.UNDETERMINED) {
           const permissionResponse = await requestPermission();
@@ -45,7 +71,10 @@ function LocationPicker() {
   }
 
   function pickOnMapHandler() {
-    navigation.navigate('Map');
+    navigation.navigate('Map', {
+      pickedImage,
+      enteredTitle,
+    });
   }
 
   let locationPreview = <Text>No location picked yet.</Text>;

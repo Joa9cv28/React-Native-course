@@ -1,15 +1,42 @@
-import { useState } from "react";
+import { use, useCallback, useState } from "react";
 import { ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
 import { Colors } from "../../constants/colors";
 import ImagePicker from "./ImagePicker";
 import LocationPicker from "./LocationPicker";
+import Button from "../UI/Button";
+import { Place } from "../../models/place";
 
-function PlaceForm() {
-  const [enteredTitle, setEnteredTitle] = useState('');
+function PlaceForm({onCreatePlace}) {
+  const route = useRoute();
+
+  const [enteredTitle, setEnteredTitle] = useState(route.params?.enteredTitle || '');
+  const [selectedImage, setSelectedImage] = useState(route.params?.pickedImage);
+  const [pickedLocation, setPickedLocation] = useState(
+    route.params?.pickedLat && route.params?.pickedLng
+      ? { lat: route.params.pickedLat, lng: route.params.pickedLng }
+      : undefined
+  );
 
   function changeTitleHanlder(enteredText) {
     setEnteredTitle(enteredText);
+  }
+
+  function takeImageHandler(imageUri) {
+    setSelectedImage(imageUri);
+  }
+
+  const pickLocationHandler = useCallback((location) => {
+    setPickedLocation(location);
+  }, []);
+
+  function savePlaceHandler() {
+    const placeData = new Place(enteredTitle, selectedImage, pickedLocation);
+    onCreatePlace(placeData);
+    // console.log(enteredTitle);
+    // console.log(selectedImage);
+    // console.log(pickedLocation);
   }
 
   return (
@@ -18,8 +45,14 @@ function PlaceForm() {
         <Text style={styles.label}>Title</Text>
         <TextInput style={styles.input} onChangeText={changeTitleHanlder} value={enteredTitle} />
       </View>
-      <ImagePicker />
-      <LocationPicker />
+      <ImagePicker onTakenImage={takeImageHandler} image={selectedImage} />
+      <LocationPicker 
+        onPickedLocation={pickLocationHandler} 
+        pickedImage={selectedImage}
+        enteredTitle={enteredTitle}
+        pickedLocation={pickedLocation}
+      />
+      <Button onPress={savePlaceHandler}>Add Place</Button>
     </ScrollView>
   );
 }
